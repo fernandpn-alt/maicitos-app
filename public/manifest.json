@@ -1,12 +1,13 @@
 {
-  "name": "Maicitos en Frío - Cambaceo",
+  "name": "Maicitos ERP — Bodega y Ruta",
   "short_name": "Maicitos",
-  "description": "App de inventario y ventas rápidas para cambaceo de Maicitos en Frío",
+  "description": "Sistema multi-dispositivo local-first para bodega, ruta en auto, pedidos de WhatsApp y cobranza",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#090d16",
+  "background_color": "#0f172a",
   "theme_color": "#f59e0b",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
       "src": "/corn-logo.svg",
@@ -14,5 +15,37 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Pedido WhatsApp",
+      "short_name": "Pedido",
+      "description": "Capturar pedido rápido desde WhatsApp",
+      "url": "/pedido-rapido",
+      "icons": [{ "src": "/corn-logo.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Ruta Calle",
+      "short_name": "Ruta",
+      "description": "Entregas, autoventa y cobranza en calle",
+      "url": "/ruta",
+      "icons": [{ "src": "/corn-logo.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Tablet Bodega",
+      "short_name": "Bodega",
+      "description": "Entradas por caja, empaque y carga de autos",
+      "url": "/tablet",
+      "icons": [{ "src": "/corn-logo.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ],
+  "share_target": {
+    "action": "/pedido-rapido",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }
