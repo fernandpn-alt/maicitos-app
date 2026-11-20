@@ -410,6 +410,23 @@ export async function signInCloud(email, password) {
   return data;
 }
 
+export async function signUpCloud(email, password) {
+  if (!isCloudConfigured || !supabase) {
+    throw new Error('Supabase no está configurado en variables de entorno (.env).');
+  }
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password
+  });
+  if (error) throw error;
+  if (data?.session) {
+    attachRealtime();
+    await syncNow({ forceFull: true });
+    return { needsEmailConfirmation: false, data };
+  }
+  return { needsEmailConfirmation: true, data };
+}
+
 export async function signOutCloud() {
   if (!supabase) return;
   detachRealtime();

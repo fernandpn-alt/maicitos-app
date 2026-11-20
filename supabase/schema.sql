@@ -186,35 +186,34 @@ alter table public.expenses enable row level security;
 alter table public.app_settings enable row level security;
 alter table public.device_heartbeats enable row level security;
 
-drop policy if exists "authenticated_all_products" on public.products;
-create policy "authenticated_all_products" on public.products for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_locations" on public.locations;
-create policy "authenticated_all_locations" on public.locations for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_stock_movements" on public.stock_movements;
-create policy "authenticated_all_stock_movements" on public.stock_movements for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_clients" on public.clients;
-create policy "authenticated_all_clients" on public.clients for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_orders" on public.orders;
-create policy "authenticated_all_orders" on public.orders for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_sales" on public.sales;
-create policy "authenticated_all_sales" on public.sales for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_payments" on public.payments;
-create policy "authenticated_all_payments" on public.payments for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_expenses" on public.expenses;
-create policy "authenticated_all_expenses" on public.expenses for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_app_settings" on public.app_settings;
-create policy "authenticated_all_app_settings" on public.app_settings for all to authenticated using (true) with check (true);
-
-drop policy if exists "authenticated_all_device_heartbeats" on public.device_heartbeats;
-create policy "authenticated_all_device_heartbeats" on public.device_heartbeats for all to authenticated using (true) with check (true);
+do $$
+declare
+  tbl text;
+  tables text[] := array[
+    'products',
+    'locations',
+    'stock_movements',
+    'clients',
+    'orders',
+    'sales',
+    'payments',
+    'expenses',
+    'app_settings',
+    'device_heartbeats'
+  ];
+begin
+  foreach tbl in array tables loop
+    begin
+      execute format(
+        'create policy %I on public.%I for all to authenticated using (true) with check (true)',
+        'authenticated_all_' || tbl,
+        tbl
+      );
+    exception
+      when duplicate_object then null;
+    end;
+  end loop;
+end $$;
 
 -- =============================================================================
 -- Realtime Publication
@@ -282,3 +281,6 @@ values
     }'::jsonb
   )
 on conflict (key) do nothing;
+
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;

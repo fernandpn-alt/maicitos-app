@@ -30,6 +30,7 @@ import { isCloudConfigured } from '../services/supabaseClient';
 import {
   signInCloud,
   signOutCloud,
+  signUpCloud,
   syncNow,
   useSyncStatus
 } from '../services/syncEngine';
@@ -80,10 +81,12 @@ export default function AdminControl({
   const [bizNameInput, setBizNameInput] = useState(settings?.business_name || 'Maicitos en Frío');
   const [newPinInput, setNewPinInput] = useState('');
 
-  // Cloud login
+  // Cloud login / signup
+  const [authMode, setAuthMode] = useState('signin'); // signin | signup
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
+  const [authInfo, setAuthInfo] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
 
   // Google Decision 1 AI status & quick test
@@ -224,16 +227,35 @@ export default function AdminControl({
     showNotice('✅ Configuración general actualizada.');
   };
 
-  const handleCloudSignIn = async (e) => {
+  const handleCloudAuthSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
+    setAuthInfo('');
     setAuthBusy(true);
     try {
-      await signInCloud(email, password);
-      setPassword('');
-      showNotice('✅ Conectado a Supabase y sincronizado.');
+      if (authMode === 'signup') {
+        const res = await signUpCloud(email, password);
+        setPassword('');
+        if (res.needsEmailConfirmation) {
+          setAuthInfo(
+            '✅ Cuenta creada. Revisa tu correo para confirmarla y después inicia sesión con esa misma clave.'
+          );
+          setAuthMode('signin');
+        } else {
+          showNotice('✅ Cuenta creada, conectada a Supabase y sincronizada.');
+        }
+      } else {
+        await signInCloud(email, password);
+        setPassword('');
+        showNotice('✅ Conectado a Supabase y sincronizado.');
+      }
     } catch (err) {
-      setAuthError(err?.message || 'Error al iniciar sesión en Supabase.');
+      setAuthError(
+        err?.message ||
+          (authMode === 'signup'
+            ? 'No se pudo crear la cuenta.'
+            : 'Error al iniciar sesión en Supabase.')
+      );
     } finally {
       setAuthBusy(false);
     }
@@ -740,30 +762,73 @@ export default function AdminControl({
               </div>
             </div>
           ) : (
-            <form onSubmit={handleCloudSignIn} className="space-y-3">
+            <form onSubmit={handleCloudAuthSubmit} className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signin');
+                    setAuthError('');
+                    setAuthInfo('');
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-black border ${
+                    authMode === 'signin'
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  Iniciar sesión
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setAuthError('');
+                    setAuthInfo('');
+                  }}
+                  className={`py-2 px-3 rounded-xl text-xs font-black border ${
+                    authMode === 'signup'
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-slate-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  Crear cuenta (1ª vez)
+                </button>
+              </div>
+
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Correo del usuario del negocio en Supabase"
+                placeholder="Correo del negocio (ej. tunombre@gmail.com)"
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"
               />
               <input
                 type="password"
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Contraseña"
+                placeholder="Contraseña (mínimo 6 caracteres)"
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"
               />
               {authError && <div className="text-xs font-bold text-rose-600">{authError}</div>}
+              {authInfo && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl px-3 py-2 text-xs font-bold">
+                  {authInfo}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={authBusy}
                 className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm"
               >
-                {authBusy ? 'Conectando...' : 'Iniciar Sesión y Sincronizar Dispositivo'}
+                {authBusy
+                  ? 'Conectando...'
+                  : authMode === 'signup'
+                  ? 'Crear Cuenta Única del Negocio'
+                  : 'Iniciar Sesión y Sincronizar Dispositivo'}
               </button>
             </form>
           )}

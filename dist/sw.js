@@ -1,5 +1,5 @@
 // Offline-first Service Worker v2 for Maicitos ERP
-const RAW_CACHE_VERSION = 'maicitos-erp-v2-1795138898262';
+const RAW_CACHE_VERSION = 'maicitos-erp-v2-1795140460364';
 const CACHE_NAME = RAW_CACHE_VERSION.startsWith('__')
   ? 'maicitos-erp-v2'
   : RAW_CACHE_VERSION;
@@ -10,8 +10,8 @@ const PRECACHE_URLS = [
   '/manifest.json',
   '/corn-logo.svg'
   ,
-  '/assets/index-DPYVAgF6.css',
-  '/assets/index-DSKFcxSc.js'
+  '/assets/index-CVNxe8qS.js',
+  '/assets/index-DZgDTmw3.css'
 ];
 
 self.addEventListener('install', (event) => {
